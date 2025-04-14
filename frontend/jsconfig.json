@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "lodash-es/*": ["node_modules/lodash/*"]
+    }
+  }
+} 
