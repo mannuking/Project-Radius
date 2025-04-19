@@ -1,31 +1,30 @@
 const webpack = require('webpack');
 
-module.exports = function override(config, env) {
-  // Add fallbacks for node modules
+module.exports = function override(config) {
+  // Add fallback for node modules
   config.resolve.fallback = {
     ...config.resolve.fallback,
-    "process": require.resolve("process/browser"),
-    "buffer": require.resolve("buffer/"),
-    "crypto": require.resolve("crypto-browserify"),
-    "stream": require.resolve("stream-browserify"),
-    "assert": require.resolve("assert/"),
-    "http": require.resolve("stream-http"),
-    "https": require.resolve("https-browserify"),
-    "os": require.resolve("os-browserify/browser"),
-    "url": require.resolve("url/"),
-    "zlib": require.resolve("browserify-zlib"),
-    "path": require.resolve("path-browserify"),
-    "util": require.resolve("util/"),
-    "querystring": require.resolve("querystring-es3")
+    process: require.resolve('process/browser'),
+    zlib: require.resolve('browserify-zlib'),
+    stream: require.resolve('stream-browserify'),
+    util: require.resolve('util'),
+    buffer: require.resolve('buffer'),
+    asset: require.resolve('assert'),
+    crypto: require.resolve('crypto-browserify'),
+    http: require.resolve('stream-http'),
+    https: require.resolve('https-browserify'),
+    os: require.resolve('os-browserify'),
+    url: require.resolve('url'),
+    path: require.resolve('path-browserify'),
   };
 
-  // Add process and buffer polyfills
+  // Add plugins
   config.plugins = [
     ...config.plugins,
     new webpack.ProvidePlugin({
       process: 'process/browser',
-      Buffer: ['buffer', 'Buffer']
-    })
+      Buffer: ['buffer', 'Buffer'],
+    }),
   ];
 
   return config;

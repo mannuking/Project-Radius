@@ -1,63 +1,108 @@
 # Project Radius
 
-A comprehensive invoice management and tracking system.
+A comprehensive invoice management and tracking system built with Firebase.
 
-## Database Setup
+## Setup
 
-1. Install PostgreSQL on your system if not already installed
-2. Create a new database named `radius_db` (or your preferred name)
-3. Copy `.env.example` to `.env` and update the following variables:
-   - `DB_NAME`: Your database name
-   - `DB_USER`: PostgreSQL username
-   - `DB_PASSWORD`: PostgreSQL password
-   - `DB_HOST`: Database host (default: localhost)
-   - `DB_PORT`: Database port (default: 5432)
+1. Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/)
+2. Enable the following Firebase services:
+   - Authentication
+   - Firestore Database
+   - Storage (if needed for file uploads)
+   - Hosting (for deployment)
 
-## Environment Variables
+3. Configure Firebase in your frontend:
+   ```javascript
+   // src/firebase.js
+   import { initializeApp } from 'firebase/app';
+   import { getAuth } from 'firebase/auth';
+   import { getFirestore } from 'firebase/firestore';
+   import { getStorage } from 'firebase/storage';
 
-The following environment variables are required:
+   const firebaseConfig = {
+     apiKey: "your-api-key",
+     authDomain: "your-project-id.firebaseapp.com",
+     projectId: "your-project-id",
+     storageBucket: "your-project-id.appspot.com",
+     messagingSenderId: "your-messaging-sender-id",
+     appId: "your-app-id"
+   };
 
-### Database Configuration
-- `DB_NAME`: Name of the PostgreSQL database
-- `DB_USER`: Database username
-- `DB_PASSWORD`: Database password
-- `DB_HOST`: Database host
-- `DB_PORT`: Database port
-
-### JWT Configuration
-- `JWT_SECRET`: Secret key for JWT token generation
-- `JWT_EXPIRES_IN`: JWT token expiration time
-
-### Server Configuration
-- `PORT`: Server port number
-- `NODE_ENV`: Environment (development/production)
-
-## Installation
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up environment variables
-4. Run database migrations:
-   ```bash
-   npm run migrate
-   ```
-5. Start the development server:
-   ```bash
-   npm run dev
+   const app = initializeApp(firebaseConfig);
+   export const auth = getAuth(app);
+   export const db = getFirestore(app);
+   export const storage = getStorage(app);
    ```
 
 ## Features
 
-- User Authentication
-- Invoice Management
+- User Authentication (Firebase Auth)
+- Invoice Management (Firestore)
 - Aging Reports
 - Action Tracking
 - Promise-to-Pay (PTP) Management
 - Audit Trail
 - Role-based Access Control
+
+## Development
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+
+## Deployment
+
+1. Install Firebase CLI:
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. Login to Firebase:
+   ```bash
+   firebase login
+   ```
+
+3. Initialize Firebase in your project:
+   ```bash
+   firebase init
+   ```
+
+4. Deploy to Firebase:
+   ```bash
+   firebase deploy
+   ```
+
+## Security Rules
+
+Make sure to set up appropriate security rules in Firebase Console for:
+- Firestore Database
+- Storage
+- Authentication
+
+Example Firestore security rules:
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /invoices/{invoiceId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+  }
+}
+```
 
 ## API Documentation
 
