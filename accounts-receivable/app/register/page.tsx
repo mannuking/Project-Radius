@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -42,15 +42,9 @@ const formSchema = z
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { signUp, userData } = useAuthContext()
+  const { signUp } = useAuthContext()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (userData) {
-      router.push("/dashboard")
-    }
-  }, [userData, router])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,10 +63,8 @@ export default function RegisterPage() {
     setError("")
 
     try {
-      const { user, userData } = await signUp(values)
-      if (user && userData) {
-        router.push("/dashboard")
-      }
+      await signUp(values)
+      router.push("/dashboard")
     } catch (error: any) {
       console.error("Registration error:", error)
       setError(error.message || "An error occurred during registration. Please try again.")

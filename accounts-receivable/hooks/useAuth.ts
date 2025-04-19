@@ -69,24 +69,19 @@ export function useAuth() {
         // Create user document in Firestore with retry
         for (let docAttempt = 0; docAttempt < MAX_RETRIES; docAttempt++) {
           try {
-            const userData = {
+            await setDoc(doc(db, 'users', user.uid), {
               ...rest,
               email,
               createdAt: new Date().toISOString(),
-            };
-            
-            await setDoc(doc(db, 'users', user.uid), userData);
-            
-            // Set the user data in state
-            setUser(user);
-            setUserData(userData);
-            
-            return { user, userData };
+            });
+            return user;
           } catch (docError: any) {
             if (docAttempt === MAX_RETRIES - 1) throw docError;
             await delay(RETRY_DELAY);
           }
         }
+        
+        return user;
       } catch (error: any) {
         lastError = error;
         
@@ -117,11 +112,6 @@ export function useAuth() {
   const signIn = async (email: string, password: string) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as UserData;
-        setUserData(userData);
-      }
       return user;
     } catch (error: any) {
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -131,11 +121,7 @@ export function useAuth() {
     }
   };
 
-  const signOut = async () => {
-    await firebaseSignOut(auth);
-    setUser(null);
-    setUserData(null);
-  };
+  const signOut = () => firebaseSignOut(auth);
 
   return {
     user,
