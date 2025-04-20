@@ -44,10 +44,10 @@
     "cmdk": "1.0.4",
     "date-fns": "^2.30.0",
     "embla-carousel-react": "8.5.1",
-    "firebase": "^10.5.0",
+    "firebase": "9.23.0",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
-    "next": "14.0.4",
+    "next": "13.5.6",
     "next-themes": "^0.4.4",
     "react": "^18.2.0",
     "react-day-picker": "8.10.1",
@@ -58,21 +58,30 @@
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "undici": "5.22.1",
     "vaul": "^0.9.6",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^18",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "postcss": "^8",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5"
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.4"
   },
   "engines": {
     "node": "18.x"
   },
+  "resolutions": {
+    "undici": "5.22.1"
+  },
   "overrides": {
-    "undici": "5.28.2"
+    "undici": "5.22.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "undici": "5.22.1"
+    }
   }
 }
