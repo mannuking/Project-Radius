@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/lib/AuthContext';
 import { UserRole } from './useAuth';
@@ -14,9 +14,16 @@ export function useProtectedRoute(options: ProtectedRouteOptions = {}) {
   const { allowedRoles = [], redirectTo = '/login' } = options;
   const router = useRouter();
   const { user, userData, loading } = useAuthContext();
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    if (!loading) {
+    // Prevent redirect during server-side rendering or hydration
+    if (typeof window === 'undefined') return;
+
+    // Only perform redirects after the auth state has been determined
+    if (!loading && !hasChecked) {
+      setHasChecked(true);
+      
       if (!user) {
         router.push(redirectTo);
       } else if (allowedRoles.length > 0 && userData) {
@@ -25,7 +32,12 @@ export function useProtectedRoute(options: ProtectedRouteOptions = {}) {
         }
       }
     }
-  }, [user, userData, loading, router, redirectTo, allowedRoles]);
+  }, [user, userData, loading, router, redirectTo, allowedRoles, hasChecked]);
 
-  return { isAuthenticated: !!user, user, userData, loading };
-} 
+  return { 
+    isAuthenticated: !!user, 
+    user, 
+    userData, 
+    loading: loading || !hasChecked 
+  };
+}
