@@ -128,8 +128,13 @@ export function useAuth() {
       console.error('Sign in error:', error);
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         throw new Error('Invalid email or password.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error during sign in. Please check your connection.');
+      } else if (error.message.includes('offline')) { // Check if Firestore fetch failed due to offline state
+        throw new Error('Failed to connect to database. Please check your internet connection.');
       }
-      throw new Error('Failed to sign in. Please try again.');
+      // Keep a generic fallback
+      throw new Error('Failed to sign in. Please try again or check connection.');
     }
   };
 
