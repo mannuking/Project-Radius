@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   BarChart3,
   Bell,
@@ -18,6 +18,8 @@ import {
   Settings,
   Users,
   X,
+  DollarSign,
+  ClipboardList,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -31,6 +33,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { useAuthContext } from "@/lib/AuthContext"
+import { UserRole } from "@/hooks/useAuth"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -38,35 +42,136 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const { user, userData, loading, signOut } = useAuthContext()
+  
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      router.push("/login")
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
+  }
 
-  const routes = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: <Home className="h-5 w-5" />,
-    },
-    {
-      name: "Invoices",
-      path: "/invoices",
-      icon: <FileText className="h-5 w-5" />,
-    },
-    {
-      name: "Reports",
-      path: "/reports",
-      icon: <BarChart3 className="h-5 w-5" />,
-    },
-    {
-      name: "Users",
-      path: "/users",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      name: "Settings",
-      path: "/settings",
-      icon: <Settings className="h-5 w-5" />,
-    },
-  ]
+  // Define routes based on user role
+  const getRoutesForRole = (role?: UserRole) => {
+    // Routes available to all users
+    const commonRoutes = [
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: <Home className="h-5 w-5" />,
+      },
+    ]
+
+    // Role-specific routes
+    const roleRoutes = {
+      Admin: [
+        {
+          name: "Invoices",
+          path: "/invoices",
+          icon: <FileText className="h-5 w-5" />,
+        },
+        {
+          name: "Reports",
+          path: "/reports",
+          icon: <BarChart3 className="h-5 w-5" />,
+        },
+        {
+          name: "Users",
+          path: "/users",
+          icon: <Users className="h-5 w-5" />,
+        },
+        {
+          name: "Settings",
+          path: "/settings",
+          icon: <Settings className="h-5 w-5" />,
+        },
+      ],
+      Manager: [
+        {
+          name: "Invoices",
+          path: "/invoices",
+          icon: <FileText className="h-5 w-5" />,
+        },
+        {
+          name: "Reports",
+          path: "/reports",
+          icon: <BarChart3 className="h-5 w-5" />,
+        },
+        {
+          name: "Users",
+          path: "/users",
+          icon: <Users className="h-5 w-5" />,
+        },
+      ],
+      Collector: [
+        {
+          name: "Worklist",
+          path: "/invoices",
+          icon: <ClipboardList className="h-5 w-5" />,
+        },
+        {
+          name: "Payment Records",
+          path: "/reports",
+          icon: <DollarSign className="h-5 w-5" />,
+        },
+      ],
+      Biller: [
+        {
+          name: "Invoices",
+          path: "/invoices",
+          icon: <FileText className="h-5 w-5" />,
+        },
+        {
+          name: "Customers",
+          path: "/users",
+          icon: <Users className="h-5 w-5" />,
+        },
+      ]
+    }
+
+    // Common routes for all users plus role-specific routes
+    return [
+      ...commonRoutes,
+      ...(role && roleRoutes[role] ? roleRoutes[role] : []),
+      // Only add Settings for roles that don't already have it
+      ...(role && roleRoutes[role] && !roleRoutes[role].some(route => route.path === "/settings") ? [{
+        name: "Settings",
+        path: "/settings",
+        icon: <Settings className="h-5 w-5" />,
+      }] : [])
+    ]
+  }
+  
+  // Get routes based on the user's role
+  const routes = getRoutesForRole(userData?.role)
+  
+  // Get name initials for avatar fallback
+  const getInitials = () => {
+    if (!userData) return "U"
+    return `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`.toUpperCase()
+  }
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login")
+    }
+  }, [loading, user, router])
+
+  // Show loading state while authentication is being checked
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>
+  }
+
+  // Show nothing if not authenticated (will be redirected)
+  if (!user || !userData) {
+    return null
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -150,28 +255,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                <AvatarFallback className="bg-highradius-100 text-highradius-700">JS</AvatarFallback>
+                <AvatarFallback className="bg-highradius-100 text-highradius-700">{getInitials()}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">John Smith</p>
-                <p className="text-xs leading-none text-muted-foreground">john.smith@example.com</p>
+                <p className="text-sm font-medium leading-none">{userData.firstName} {userData.lastName}</p>
+                <p className="text-xs leading-none text-muted-foreground">{userData.email}</p>
+                <p className="text-xs leading-none text-muted-foreground mt-1">Role: {userData.role}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <HelpCircle className="mr-2 h-4 w-4" />
               <span>Help & Support</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-500">
+            <DropdownMenuItem className="text-red-500" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>

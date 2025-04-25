@@ -63,8 +63,12 @@ export default function RegisterPage() {
     setError("")
 
     try {
-      await signUp(values)
+      const { confirmPassword, ...userData } = values
+      await signUp({ ...userData, password: values.password })
+      // Add a small delay to ensure Firebase auth state is updated
+      await new Promise(resolve => setTimeout(resolve, 1000))
       router.push("/dashboard")
+      router.refresh() // Force a refresh of the page
     } catch (error: any) {
       console.error("Registration error:", error)
       setError(error.message || "An error occurred during registration. Please try again.")
@@ -74,18 +78,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
-      <div className="mb-8 flex items-center gap-2 text-2xl font-bold">
-        <CreditCard className="h-6 w-6" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="mb-8 flex items-center gap-2 text-2xl font-bold text-highradius-800">
+        <CreditCard className="h-6 w-6 text-highradius-600" />
         <span>AR Manager</span>
       </div>
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
+      <Card className="w-full max-w-md border shadow-sm">
+        <CardHeader className="space-y-1 pb-6">
+          <CardTitle className="text-2xl font-bold text-gray-800">Create an Account</CardTitle>
           <CardDescription>Enter your information to create an account</CardDescription>
         </CardHeader>
         <CardContent>
-          {error && <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
+          {error && <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -96,7 +100,7 @@ export default function RegisterPage() {
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="First Name" {...field} />
+                        <Input placeholder="Enter your first name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -109,7 +113,7 @@ export default function RegisterPage() {
                     <FormItem>
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Last Name" {...field} />
+                        <Input placeholder="Enter your last name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,7 +127,7 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your email" {...field} />
+                      <Input type="email" placeholder="Enter your email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -164,7 +168,7 @@ export default function RegisterPage() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
+                          <SelectValue placeholder="Select your role" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -191,10 +195,10 @@ export default function RegisterPage() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex justify-center border-t p-6">
           <div className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-highradius-600 hover:text-highradius-800 hover:underline">
               Login
             </Link>
           </div>

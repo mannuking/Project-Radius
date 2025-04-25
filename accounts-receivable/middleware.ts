@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const authCookie = request.cookies.get('auth')
   const { pathname } = request.nextUrl
 
   // Public paths that don't require authentication
@@ -11,14 +10,9 @@ export function middleware(request: NextRequest) {
   // Check if the path is public
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
 
-  // If there's no auth cookie and the path is not public, redirect to login
-  if (!authCookie && !isPublicPath) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // If there's an auth cookie and trying to access auth pages, redirect to dashboard
-  if (authCookie && isPublicPath) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // For non-public paths, let the client-side handle auth
+  if (!isPublicPath) {
+    return NextResponse.next()
   }
 
   return NextResponse.next()
