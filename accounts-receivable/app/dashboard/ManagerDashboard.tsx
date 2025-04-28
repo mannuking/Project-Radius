@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DollarSign, Percent, Users, TrendingUp, TrendingDown, Landmark, Building, Hotel, UtensilsCrossed } from "lucide-react"
 
 // Register ChartJS components
@@ -52,78 +52,18 @@ export default function ManagerDashboard() {
   const [selectedYear, setSelectedYear] = useState("2024")
   const [selectedMonth, setSelectedMonth] = useState("All")
   const [selectedCollector, setSelectedCollector] = useState("All")
+  const [dashboardData, setDashboardData] = useState<any>(null)
 
-  // Enhanced Sample Data - Replace with actual data
-  const dashboardData = {
-    totalBalance: 171258670,
-    totalAccounts: 2156,
-    balanceDistribution: {
-      labels: ["Before Due", "Overdue", "Non-Active"],
-      datasets: [{
-        data: [34624182, 136634488, 36354830], // Before Due, Overdue, Non-Active
-        backgroundColor: ["#4caf50", "#f44336", "#9e9e9e"],
-        borderColor: "#ffffff",
-        borderWidth: 2,
-      }],
-    },
-    dsoAverage: 444,
-    riskStatus: {
-      high: 0.33,
-      moderate: 0.41,
-      inRange: 0.26,
-    },
-    monthlyTrend: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [
-        {
-          label: "Current",
-          data: [49, 40, 37, 60, 49, 55, 40, 58, 155, 144, 140, 120].map(v => v * 1000000),
-          borderColor: "#3f51b5",
-          tension: 0.3,
-          pointBackgroundColor: "#3f51b5",
-          pointRadius: 3,
-        },
-        {
-          label: "Previous Month",
-          data: [40, 37, 60, 49, 55, 40, 58, 155, 144, 140, 120, 134].map(v => v * 1000000),
-          borderColor: "#bdbdbd",
-          tension: 0.3,
-          borderDash: [5, 5],
-          pointBackgroundColor: "#bdbdbd",
-          pointRadius: 3,
-        },
-      ],
-    },
-    overdueChange: -24000000, // Example change
-    overduePercentageChange: -17,
-    beforeDueChange: 9000000,
-    beforeDuePercentageChange: 23,
-    overdueByCountry: {
-      labels: ["UAE", "Egypt", "Cairo", "Dubai", "Alex", "Pakistan"],
-      datasets: [{
-        label: "Overdue Amount",
-        data: [47, 41, 35, 28, 22, 18].map(v => v * 1000000),
-        backgroundColor: "#3f51b5",
-        barThickness: 15,
-      }],
-    },
-    topOverdueCompanies: [
-        { name: "The Private Exict of the OL -RD", amount: 12181668 },
-        { name: "HOSSAM KAMAL KHALIL", amount: 7399750 },
-        { name: "OL LIMITED VILLAGE", amount: 7235749 },
-        { name: "Al-Raya For Templates Co.Ltd -JD", amount: 3767368 },
-        { name: "Other Level\'s Retail Company", amount: 3661540 },
-    ],
-    overdueByCustomerGroup: {
-        labels: ["Catering", "Supermarkets", "Sundry Debtors", "Restaurants", "Frozen Food", "Hotels", "Offices", "Convenience Stores"],
-        datasets: [{
-            label: "Overdue Amount",
-            data: [68.2, 28.7, 16.5, 23.0, 12.6, 8.4, 338.0, 264.5, 3.5, 163.0, 10.5, 13.4].map(v => v * 1000), // Adjust units as needed
-            backgroundColor: ["#3f51b5", "#4caf50", "#ff9800", "#f44336", "#9c27b0", "#00bcd4", "#8bc34a", "#ffeb3b"],
-            barThickness: 15,
-        }],
-    },
-  }
+  useEffect(() => {
+    fetch("http://localhost:5001/api/ar-data?role=manager")
+      .then(res => res.json())
+      .then(data => {
+        // TODO: Aggregate/transform data for charts here
+        setDashboardData(data)
+      })
+  }, [])
+
+  if (!dashboardData) return <div>Loading...</div>
 
   const commonChartOptions = {
     responsive: true,
@@ -284,7 +224,7 @@ export default function ManagerDashboard() {
                 <CardHeader className="p-0 pb-2 sticky top-0 bg-white z-10"><CardTitle className="text-sm font-semibold text-gray-700">Top Overdue Companies</CardTitle></CardHeader>
                 <CardContent className="p-0">
                     <ul className="space-y-2">
-                        {dashboardData.topOverdueCompanies.map((company, index) => (
+                        {dashboardData.topOverdueCompanies.map((company: any, index: any) => (
                             <li key={index} className="flex justify-between items-center text-xs border-b pb-1">
                                 <span className="truncate pr-2 text-gray-600">{index + 1}. {company.name}</span>
                                 <span className="font-semibold text-red-600 whitespace-nowrap">{formatCurrency(company.amount)}</span>

@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DollarSign, Percent, TrendingUp, FileText, Users, BarChartHorizontal } from "lucide-react"
 
 // Register ChartJS components
@@ -51,82 +51,18 @@ const formatCurrency = (value: number) => {
 export default function AdminDashboard() {
   const [selectedYear, setSelectedYear] = useState("2023") // Matching screenshot year
   const [selectedMonth, setSelectedMonth] = useState("All")
+  const [dashboardData, setDashboardData] = useState<any>(null)
 
-  // Enhanced Sample Data - Replace with actual data
-  const dashboardData = {
-    totalSales: 9890000,
-    accountsReceivable: 2660000,
-    overdueReceivables: 480000,
-    overduePercentage: 5,
-    monthlyPerformance: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [
-        {
-          label: "Total Invoice Amount",
-          data: [1200000, 980000, 850000, 920000, 1100000, 950000, 890000, 1050000, 920000, 880000, 950000, 1000000],
-          backgroundColor: "#26a69a", // Teal color from screenshot
-          barThickness: 15,
-        },
-        {
-          label: "Total Outstanding Amount",
-          data: [220000, 130000, 60000, 40000, 150000, 30000, 40000, 150000, 40000, 30000, 30000, 50000],
-          backgroundColor: "#ffca28", // Yellow color from screenshot
-          barThickness: 15,
-        },
-        {
-          label: "Total Overdue Amount",
-          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 10000, 5000, 15000],
-          backgroundColor: "#ef5350", // Red color from screenshot
-          barThickness: 15,
-        },
-      ],
-    },
-    invoiceStatus: {
-      labels: ["Paid Invoice", "Open Invoice", "Overdue Invoice"],
-      datasets: [{
-        data: [55, 30, 15], // Adjusted percentages based on screenshot
-        backgroundColor: ["#26a69a", "#ffca28", "#ef5350"],
-        borderColor: "#ffffff",
-        borderWidth: 2,
-      }],
-    },
-    topCustomersBySales: {
-      labels: ["D", "R", "A", "Y", "Q"], // Reversed order to match screenshot
-      datasets: [{
-        label: "Sales Amount",
-        data: [980000, 979841, 744393, 584514, 584425].reverse(), // Reversed order
-        backgroundColor: "#ef5350",
-        barThickness: 20,
-      }],
-    },
-    topCustomersByReceivables: {
-        labels: ["Customer X", "Others", "Customer Y"], // Example
-        datasets: [{
-            data: [58, 40, 2],
-            backgroundColor: ["#26a69a", "#bdbdbd", "#ef5350"],
-            borderColor: "#ffffff",
-            borderWidth: 2,
-        }],
-    },
-    agingBuckets: {
-      labels: ["0-30 days", "31-60 days", "61-90 days", "Above 90 days"],
-      datasets: [{
-        label: "Overdue Amount",
-        data: [104300, 1, 5000, 364000], // Data from screenshot
-        backgroundColor: "#ffca28",
-        barThickness: 20,
-      }],
-    },
-    overdueBalanceByCollector: {
-        labels: ["Ella", "Rachael", "Ross"],
-        datasets: [{
-            data: [75, 15, 10],
-            backgroundColor: ["#26a69a", "#ffca28", "#ef5350"],
-            borderColor: "#ffffff",
-            borderWidth: 2,
-        }],
-    },
-  }
+  useEffect(() => {
+    fetch("http://localhost:5001/api/ar-data?role=admin")
+      .then(res => res.json())
+      .then(data => {
+        // TODO: Aggregate/transform data for charts here
+        setDashboardData(data)
+      })
+  }, [])
+
+  if (!dashboardData) return <div>Loading...</div>
 
   const chartOptions = {
     responsive: true,
