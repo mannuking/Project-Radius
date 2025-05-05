@@ -66,6 +66,9 @@ export default function BillerDashboard({ billerName }: BillerDashboardProps) {
       ? `http://127.0.0.1:5001/api/ar-data?role=biller&name=${encodeURIComponent(billerName)}`
       : "http://127.0.0.1:5001/api/ar-data?role=biller";
       
+    // Log the API request for debugging
+    console.log("Fetching biller data from:", apiUrl);
+      
     fetch(apiUrl)
       .then(res => {
         if (!res.ok) {
@@ -79,7 +82,8 @@ export default function BillerDashboard({ billerName }: BillerDashboardProps) {
       })
       .catch(error => {
         console.error("Error fetching biller data:", error);
-        setDashboardData(null);
+        // Show error message instead of using mock data
+        alert("Error fetching data. Please try again later.");
       });
   }, [billerName])
 
@@ -122,8 +126,44 @@ export default function BillerDashboard({ billerName }: BillerDashboardProps) {
     }
   };
 
-  const horizontalBarOptions = { ...chartOptions, indexAxis: 'y' as const };
-  const pieOptions = { ...chartOptions, scales: {} }; // Remove scales for pie/doughnut
+  const horizontalBarOptions = { 
+    ...chartOptions, 
+    indexAxis: 'y' as const,
+    plugins: {
+      ...chartOptions.plugins,
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            let label = context.dataset.label || '';
+            if (label) { label += ': '; }
+            if (context.parsed.x !== undefined) {
+              label += formatCurrency(context.parsed.x);
+            }
+            return label;
+          }
+        }
+      }
+    }
+  };
+
+  const pieOptions = { 
+    ...chartOptions, 
+    scales: {}, // Remove scales for pie/doughnut
+    plugins: {
+      ...chartOptions.plugins,
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = Math.round((value / total) * 100);
+            return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
 
   return (
     <div className="space-y-4 p-4 bg-gray-100/50 min-h-screen">

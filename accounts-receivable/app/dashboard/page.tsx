@@ -2,14 +2,26 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { LoadingPage } from "@/components/LoadingSpinner"
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { user, loading } = useAuth()
   
-  // Redirect to login page for role selection
+  // Redirect users to their role-specific dashboard
   useEffect(() => {
-    router.push('/login')
-  }, [router])
+    if (!loading) {
+      if (!user) {
+        // Not authenticated, redirect to login
+        router.push('/login')
+      } else {
+        // Redirect to the appropriate role dashboard
+        router.push(`/dashboard/${user.role}`)
+      }
+    }
+  }, [user, loading, router])
   
-  return <div className="flex h-screen items-center justify-center">Redirecting to role selection...</div>
+  // Show loading while we redirect
+  return <LoadingPage />
 }

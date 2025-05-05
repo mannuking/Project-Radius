@@ -1,57 +1,53 @@
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
+import { getAnalytics, isSupported } from 'firebase/analytics';
+import { enableIndexedDbPersistence } from 'firebase/firestore';
 
 // Check if Firebase auth should be used
 const useFirebaseAuth = process.env.NEXT_PUBLIC_USE_FIREBASE_AUTH === 'true';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-key-for-development',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'demo-app.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-project',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo-app.appspot.com',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789012',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789012:web:abcdef1234567890',
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-ABCDEFGHIJ',
+  apiKey: "AIzaSyAw8XF5kK0hD_vV33n2VnRGVmAlP98Fcxw",
+  authDomain: "ar-tracker-c226f.firebaseapp.com",
+  projectId: "ar-tracker-c226f",
+  storageBucket: "ar-tracker-c226f.firebasestorage.app",
+  messagingSenderId: "682110029066",
+  appId: "1:682110029066:web:53acb495181020913d3ef3",
+  measurementId: "G-NKB12LW8VN"
 };
 
 // Log setup mode
 console.log(`Firebase Auth: ${useFirebaseAuth ? 'ENABLED' : 'DISABLED (Development Mode)'}`);
 
-// Initialize Firebase (only if we're using Firebase auth or on the client side)
+// Initialize Firebase for client-side
 let app = null;
 let auth = null;
 let db = null;
-let storage = null;
 let analytics = null;
 
-// Only initialize Firebase if we're using Firebase auth
-if (useFirebaseAuth) {
+// Only initialize in browser environment or if it's not already initialized
+if (typeof window !== 'undefined') {
   try {
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    // Initialize Firebase
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
     
-    // Initialize Analytics in client-side only
-    if (typeof window !== 'undefined') {
-      analytics = getAnalytics(app);
-      
-      // Enable offline persistence for Firestore
-      enableIndexedDbPersistence(db).catch((err) => {
-        if (err.code === 'failed-precondition') {
-          console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-        } else if (err.code === 'unimplemented') {
-          console.warn('The current browser does not support offline persistence');
-        }
-      });
-    }
+    // Initialize Firestore with long polling and local persistence
+    db = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      cacheSizeBytes: 50000000, // 50 MB
+      localCache: persistentLocalCache({
+        tabManager: persistentSingleTabManager(),
+      })
+    });
+    
+    // Initialize Analytics
+    isSupported().then(yes => yes && (analytics = getAnalytics(app)));
   } catch (error) {
     console.error('Error initializing Firebase:', error);
   }
 }
 
-export { app, auth, db, storage, analytics, useFirebaseAuth }; 
+export { app, auth, db, analytics, useFirebaseAuth }; 

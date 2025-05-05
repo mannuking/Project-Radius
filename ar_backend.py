@@ -492,15 +492,10 @@ def format_biller_dashboard_data(df, biller_name=None):
     total_disputed_amount = disputed_invoices['Invoice Amount'].sum()
     disputed_percentage = round((total_disputed / total_assigned) * 100) if total_assigned > 0 else 0
     
-    # Root causes for disputes
-    root_causes = disputed_invoices['Root cause dropdown'].value_counts().to_dict()
+    # Root causes for disputes - handle empty/null values
+    root_causes = disputed_invoices['Root cause dropdown'].fillna('Unspecified').value_counts().to_dict()
     root_cause_labels = list(root_causes.keys())
     root_cause_data = list(root_causes.values())
-    
-    # Handle None/NaN values in root causes
-    if None in root_cause_labels:
-        root_cause_labels.remove(None)
-        root_cause_data.pop(root_cause_labels.index(None))
     
     root_cause_distribution = {
         'labels': root_cause_labels,
@@ -508,26 +503,21 @@ def format_biller_dashboard_data(df, biller_name=None):
             {
                 'data': root_cause_data,
                 'backgroundColor': [
-                    'rgba(16, 185, 129, 0.8)',
                     'rgba(59, 130, 246, 0.8)',
-                    'rgba(244, 63, 94, 0.8)',
-                    'rgba(250, 204, 21, 0.8)',
-                    'rgba(168, 85, 247, 0.8)'
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(156, 163, 175, 0.8)'
                 ],
                 'borderWidth': 1
             }
         ]
     }
     
-    # Dispute code distribution
-    dispute_codes = disputed_invoices['Dispute code L1'].value_counts().to_dict()
+    # Dispute code distribution - handle empty/null values
+    dispute_codes = disputed_invoices['Dispute code L1'].fillna('Unspecified').value_counts().to_dict()
     dispute_code_labels = list(dispute_codes.keys())
     dispute_code_data = list(dispute_codes.values())
-    
-    # Handle None/NaN values in dispute codes
-    if None in dispute_code_labels:
-        dispute_code_labels.remove(None)
-        dispute_code_data.pop(dispute_code_labels.index(None))
     
     dispute_code_distribution = {
         'labels': dispute_code_labels,
@@ -535,11 +525,11 @@ def format_biller_dashboard_data(df, biller_name=None):
             {
                 'data': dispute_code_data,
                 'backgroundColor': [
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
                     'rgba(16, 185, 129, 0.8)',
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(244, 63, 94, 0.8)',
-                    'rgba(250, 204, 21, 0.8)',
-                    'rgba(168, 85, 247, 0.8)'
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(156, 163, 175, 0.8)'
                 ],
                 'borderWidth': 1
             }
@@ -555,20 +545,15 @@ def format_biller_dashboard_data(df, biller_name=None):
             {
                 'label': 'Disputed Amount',
                 'data': top_customers.values.tolist(),
-                'backgroundColor': 'rgba(59, 130, 246, 0.8)'
+                'backgroundColor': 'rgba(239, 68, 68, 0.8)'
             }
         ]
     }
     
-    # Outcome status distribution
-    outcome_status = disputed_invoices['Outcome Status'].value_counts().to_dict()
+    # Outcome status distribution - handle empty/null values
+    outcome_status = disputed_invoices['Outcome Status'].fillna('Pending').value_counts().to_dict()
     outcome_labels = list(outcome_status.keys())
     outcome_data = list(outcome_status.values())
-    
-    # Handle None/NaN values in outcome status
-    if None in outcome_labels:
-        outcome_labels.remove(None)
-        outcome_data.pop(outcome_labels.index(None))
     
     outcome_distribution = {
         'labels': outcome_labels,
@@ -577,10 +562,10 @@ def format_biller_dashboard_data(df, biller_name=None):
                 'data': outcome_data,
                 'backgroundColor': [
                     'rgba(16, 185, 129, 0.8)',  # Resolved
-                    'rgba(59, 130, 246, 0.8)',  # Pending Investigation
+                    'rgba(59, 130, 246, 0.8)',  # Pending
                     'rgba(244, 63, 94, 0.8)',   # Escalated
-                    'rgba(250, 204, 21, 0.8)',  # Closed
-                    'rgba(168, 85, 247, 0.8)'   # Other
+                    'rgba(250, 204, 21, 0.8)',  # Partial Resolution
+                    'rgba(156, 163, 175, 0.8)'  # Other
                 ],
                 'borderWidth': 1
             }

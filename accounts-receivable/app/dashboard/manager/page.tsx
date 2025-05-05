@@ -2,11 +2,14 @@
 
 import ManagerDashboard from "../ManagerDashboard"
 import DashboardLayout from "@/components/dashboard-layout"
+import ProtectedRoute from "@/components/protected-route"
 
 export default function ManagerDashboardPage() {
   return (
-    <DashboardLayout>
-      <ManagerDashboard />
-    </DashboardLayout>
+    <ProtectedRoute requiredRole="manager">
+      <DashboardLayout>
+        <ManagerDashboard />
+      </DashboardLayout>
+    </ProtectedRoute>
   )
 } 
