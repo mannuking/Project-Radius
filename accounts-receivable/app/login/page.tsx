@@ -1,131 +1,59 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { CreditCard, Loader2 } from "lucide-react"
-import { useAuthContext } from "@/lib/AuthContext"
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
-})
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { DollarSign, FileText, Users, BarChart3, ChevronRight } from "lucide-react"
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { signIn } = useAuthContext()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  })
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    setError("")
-
-    try {
-      await signIn(values.email, values.password)
-      router.push("/dashboard")
-    } catch (error: any) {
-      console.error("Login error:", error)
-      setError(error.message || "Invalid email or password. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
-      <div className="mb-8 flex items-center gap-2 text-2xl font-bold text-highradius-800">
-        <CreditCard className="h-6 w-6 text-highradius-600" />
-        <span>AR Manager</span>
-      </div>
-      <Card className="w-full max-w-md border shadow-sm">
-        <CardHeader className="space-y-1 pb-6">
-          <CardTitle className="text-2xl font-bold text-gray-800">Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-slate-800 to-slate-900">
+      <Card className="w-full max-w-md shadow-xl bg-white rounded-xl overflow-hidden">
+        <CardHeader className="text-center bg-slate-800 text-white py-8">
+          <DollarSign className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+          <CardTitle className="text-3xl font-bold">Accounts Receivable System</CardTitle>
+          <CardDescription className="text-slate-300 text-lg mt-2">Select your role to continue</CardDescription>
         </CardHeader>
-        <CardContent>
-          {error && <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-700">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter your email"
-                        className="border-gray-300 focus-visible:ring-highradius-400"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-700">Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter your password"
-                        className="border-gray-300 focus-visible:ring-highradius-400"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="text-right">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-highradius-600 hover:text-highradius-800 hover:underline"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-              <Button type="submit" className="w-full bg-highradius-600 hover:bg-highradius-700" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  "Login"
-                )}
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 gap-4">
+            <Link href="/dashboard/admin" className="no-underline">
+              <Button className="w-full py-6 text-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-between group transition-all duration-300">
+                <div className="flex items-center">
+                  <BarChart3 className="mr-3 h-6 w-6" />
+                  <span>Admin Dashboard</span>
+                </div>
+                <ChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t p-6">
-          <div className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-highradius-600 hover:text-highradius-800 hover:underline">
-              Sign Up
+            </Link>
+            <Link href="/dashboard/manager" className="no-underline">
+              <Button className="w-full py-6 text-lg bg-green-600 hover:bg-green-700 flex items-center justify-between group transition-all duration-300">
+                <div className="flex items-center">
+                  <Users className="mr-3 h-6 w-6" />
+                  <span>Manager Dashboard</span>
+                </div>
+                <ChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link href="/dashboard/biller" className="no-underline">
+              <Button className="w-full py-6 text-lg bg-purple-600 hover:bg-purple-700 flex items-center justify-between group transition-all duration-300">
+                <div className="flex items-center">
+                  <FileText className="mr-3 h-6 w-6" />
+                  <span>Biller Dashboard</span>
+                </div>
+                <ChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link href="/dashboard/collector" className="no-underline">
+              <Button className="w-full py-6 text-lg bg-orange-600 hover:bg-orange-700 flex items-center justify-between group transition-all duration-300">
+                <div className="flex items-center">
+                  <DollarSign className="mr-3 h-6 w-6" />
+                  <span>Collector Dashboard</span>
+                </div>
+                <ChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
             </Link>
           </div>
-        </CardFooter>
+        </CardContent>
       </Card>
     </div>
   )

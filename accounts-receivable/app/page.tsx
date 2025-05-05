@@ -1,8 +1,34 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, BarChart3, CheckCircle, CreditCard, DollarSign, FileText, Users } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const router = useRouter()
+
+  const handleRoleLogin = (role: string) => {
+    // Redirect to the appropriate dashboard based on role
+    switch(role) {
+      case 'admin':
+        router.push('/dashboard/admin')
+        break
+      case 'manager':
+        router.push('/dashboard/manager')
+        break  
+      case 'biller':
+        router.push('/dashboard/biller')
+        break
+      case 'collector':
+        router.push('/dashboard/collector')
+        break
+      default:
+        break
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
@@ -24,7 +50,7 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
-              <Button variant="ghost" className="text-highradius-600 hover:text-highradius-700 hover:bg-highradius-50">
+              <Button variant="ghost" className="text-highradius-600 hover:text-highradius-700 hover:bg-highradius-50 font-bold">
                 Login
               </Button>
             </Link>
@@ -59,7 +85,7 @@ export default function Home() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-highradius-200 text-highradius-700 hover:bg-highradius-50"
+                      className="border-highradius-200 text-highradius-700 hover:bg-highradius-50 font-bold"
                     >
                       Sign In
                     </Button>

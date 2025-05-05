@@ -33,27 +33,41 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
-import { useAuthContext } from "@/lib/AuthContext"
-import { UserRole } from "@/hooks/useAuth"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
+// Define UserRole type since we're removing the import
+type UserRole = "Admin" | "Manager" | "Collector" | "Biller";
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const { user, userData, loading, signOut } = useAuthContext()
+  
+  // Determine user role from pathname
+  const getUserRole = (): UserRole => {
+    if (pathname.includes("/admin")) return "Admin"
+    if (pathname.includes("/manager")) return "Manager"
+    if (pathname.includes("/collector")) return "Collector"
+    if (pathname.includes("/biller")) return "Biller"
+    return "Admin" // Default to Admin
+  }
+  
+  const userRole = getUserRole()
+  
+  // Mock user data based on role
+  const userData = {
+    firstName: userRole,
+    lastName: "User",
+    role: userRole,
+    email: `${userRole.toLowerCase()}@example.com`
+  }
   
   // Handle logout
-  const handleLogout = async () => {
-    try {
-      await signOut()
-      router.push("/login")
-    } catch (error) {
-      console.error("Logout error:", error)
-    }
+  const handleLogout = () => {
+    router.push("/login")
   }
 
   // Define routes based on user role
@@ -62,7 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const commonRoutes = [
       {
         name: "Dashboard",
-        path: "/dashboard",
+        path: role ? `/dashboard/${role.toLowerCase()}` : "/dashboard",
         icon: <Home className="h-5 w-5" />,
       },
     ]
@@ -148,7 +162,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
   
   // Get routes based on the user's role
-  const routes = getRoutesForRole(userData?.role)
+  const routes = getRoutesForRole(userData?.role as UserRole)
   
   // Get name initials for avatar fallback
   const getInitials = () => {
@@ -156,22 +170,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`.toUpperCase()
   }
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login")
-    }
-  }, [loading, user, router])
-
-  // Show loading state while authentication is being checked
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>
-  }
-
-  // Show nothing if not authenticated (will be redirected)
-  if (!user || !userData) {
-    return null
-  }
+  // No need for authentication checks or redirects since we're bypassing authentication
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -264,7 +263,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{userData.firstName} {userData.lastName}</p>
                 <p className="text-xs leading-none text-muted-foreground">{userData.email}</p>
-                <p className="text-xs leading-none text-muted-foreground mt-1">Role: {userData.role}</p>
+                <div className="flex items-center">
+                  <span className="mr-2 font-medium">{userData.firstName} {userData.lastName}</span>
+                  <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">{userData.role}</span>
+                </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

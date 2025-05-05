@@ -55,12 +55,25 @@ export default function ManagerDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null)
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/ar-data?role=manager")
-      .then(res => res.json())
-      .then(data => {
-        // TODO: Aggregate/transform data for charts here
-        setDashboardData(data)
+    // Log the API request for debugging
+    const apiUrl = "http://127.0.0.1:5001/api/ar-data?role=manager";
+    console.log("Fetching manager data from:", apiUrl);
+    
+    fetch(apiUrl)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`API responded with status: ${res.status}`);
+        }
+        return res.json();
       })
+      .then(data => {
+        console.log("Manager data received:", data);
+        setDashboardData(data);
+      })
+      .catch(error => {
+        console.error("Error fetching manager data:", error);
+        alert("Error fetching data from API: " + error.message);
+      });
   }, [])
 
   if (!dashboardData) return <div>Loading...</div>

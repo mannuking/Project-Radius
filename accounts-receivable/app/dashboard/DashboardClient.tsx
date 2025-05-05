@@ -1,53 +1,51 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuthContext } from "@/lib/AuthContext"
-import { Loader2 } from "lucide-react"
+import { useRouter, usePathname } from "next/navigation"
 import AdminDashboard from "./AdminDashboard"
 import ManagerDashboard from "./ManagerDashboard"
+import CollectorDashboard from "./CollectorDashboard"
+import BillerDashboard from "./BillerDashboard"
 import DashboardLayout from "@/components/dashboard-layout"
 
 export default function DashboardClient() {
-  const { userData, loading } = useAuthContext()
+  const pathname = usePathname()
   const router = useRouter()
 
+  // Determine the role based on the path
+  const getRoleFromPath = () => {
+    if (pathname.includes('/admin')) return "Admin"
+    if (pathname.includes('/manager')) return "Manager"
+    if (pathname.includes('/collector')) return "Collector"
+    if (pathname.includes('/biller')) return "Biller"
+    return "Unknown"
+  }
+
+  const role = getRoleFromPath()
+
+  // If at /dashboard directly, redirect to a default role
   useEffect(() => {
-    // If not loading and no user data, redirect to login
-    if (!loading && !userData) {
-      router.push("/login")
+    if (pathname === '/dashboard') {
+      router.push('/dashboard/admin')
     }
-  }, [loading, userData, router])
+  }, [pathname, router])
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin text-highradius-600" />
-            <span className="text-lg text-muted-foreground">Loading...</span>
-          </div>
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  if (!userData) {
-    return null // Will be redirected by the useEffect
-  }
-
-  // Render dashboard based on user role
+  // Render dashboard based on path-determined role
   const renderDashboard = () => {
-    switch (userData.role) {
+    switch (role) {
       case "Admin":
         return <AdminDashboard />
       case "Manager":
         return <ManagerDashboard />
+      case "Collector":
+        return <CollectorDashboard collectorName="Default Collector" />
+      case "Biller":
+        return <BillerDashboard billerName="Default Biller" />
       default:
         return (
           <div className="flex h-[50vh] items-center justify-center">
             <div className="text-lg text-muted-foreground">
-              Welcome {userData.firstName}! Your role-specific dashboard is coming soon.
+              Welcome! Your role-specific dashboard is coming soon.
             </div>
           </div>
         )
