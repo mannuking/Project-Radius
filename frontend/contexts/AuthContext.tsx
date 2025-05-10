@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LoadingPage } from '@/components/LoadingSpinner'
-import { UserData, signIn, signUp, signOut, getCurrentUser, isAuthorized } from '@/lib/auth'
+import { UserData, signIn, signUp, signOut, getCurrentUser } from '@/lib/auth'
 import { useToast } from '@/components/ui/use-toast'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -14,7 +14,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, role: UserData['role'], name: string) => Promise<void>
   signOut: () => Promise<void>
-  isAuthorized: (requiredRole: UserData['role']) => boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,7 +22,6 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  isAuthorized: () => false,
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -61,19 +59,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (firebaseUser) {
           // Get user data from Firestore
           const userData = await getCurrentUser()
-          setUser(userData)
-          
-          // Create session cookie for server-side auth
-          const token = await firebaseUser.getIdToken()
-          await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token }),
-          })
+          if (userData) {
+            setUser(userData)
+            // Redirect to appropriate dashboard if on login/register page
+            const currentPath = window.location.pathname
+            if (currentPath === '/login' || currentPath === '/register') {
+              redirectToDashboard(userData.role)
+            }
+          }
         } else {
           setUser(null)
+          // Redirect to login if not already there
+          const currentPath = window.location.pathname
+          if (currentPath.startsWith('/dashboard')) {
+            router.push('/login')
+          }
         }
       } catch (error) {
         console.error('Error in auth state change:', error)
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => unsubscribe()
-  }, [])
+  }, [router])
 
   const handleSignIn = async (email: string, password: string) => {
     try {
@@ -95,11 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: 'Success',
         description: 'Successfully signed in',
       })
-      
-      // Log the user role for debugging
-      console.log(`User signed in with role: ${userData.role}`)
-      
-      // Redirect based on role
       redirectToDashboard(userData.role)
     } catch (error: any) {
       toast({
@@ -127,8 +122,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: 'Success',
         description: 'Successfully signed up',
       })
-      
-      // Redirect based on role
       redirectToDashboard(userData.role)
     } catch (error: any) {
       toast({
@@ -146,10 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await signOut()
       setUser(null)
-      // Clear session cookie
-      await fetch('/api/auth/session', {
-        method: 'DELETE',
-      })
       toast({
         title: 'Success',
         description: 'Successfully signed out',
@@ -165,11 +154,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const checkAuthorization = (requiredRole: UserData['role']) => {
-    if (!user) return false
-    return isAuthorized(user.role, requiredRole)
-  }
-
   if (loading) {
     return <LoadingPage />
   }
@@ -182,7 +166,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn: handleSignIn,
         signUp: handleSignUp,
         signOut: handleSignOut,
-        isAuthorized: checkAuthorization,
       }}
     >
       {children}

@@ -2,7 +2,6 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { enableIndexedDbPersistence } from 'firebase/firestore';
 
 // Check if Firebase auth should be used
 const useFirebaseAuth = process.env.NEXT_PUBLIC_USE_FIREBASE_AUTH === 'true';
@@ -34,12 +33,11 @@ if (typeof window !== 'undefined') {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
     
-    // Initialize Firestore with long polling and local persistence
+    // Initialize Firestore with local persistence and cache size
     db = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
-      cacheSizeBytes: 50000000, // 50 MB
       localCache: persistentLocalCache({
         tabManager: persistentSingleTabManager(),
+        cacheSizeBytes: 50000000, // 50 MB
       })
     });
     

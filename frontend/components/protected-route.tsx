@@ -15,7 +15,7 @@ export default function ProtectedRoute({
   children, 
   requiredRole 
 }: ProtectedRouteProps) {
-  const { user, loading, isAuthorized } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -45,14 +45,13 @@ export default function ProtectedRoute({
       }
 
       // Check if user has appropriate role
-      if (!isAuthorized(effectiveRequiredRole)) {
+      if (user.role !== effectiveRequiredRole) {
         console.log(`Access denied: User role ${user.role} does not have access to ${effectiveRequiredRole} dashboard`)
-        
         // Redirect to their appropriate dashboard
         router.push(`/dashboard/${user.role}`)
       }
     }
-  }, [user, loading, effectiveRequiredRole, isAuthorized, router])
+  }, [user, loading, effectiveRequiredRole, router])
 
   // Show loading state while checking authorization
   if (loading || !user) {
