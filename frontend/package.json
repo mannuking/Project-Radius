@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup": "node setup.js"
+    "setup": "node setup.js",
+    "build:firebase": "node build-for-firebase.js",
+    "deploy": "pnpm run build:firebase && firebase deploy --only hosting"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

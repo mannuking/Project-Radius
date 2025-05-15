@@ -58,13 +58,19 @@ type BillerDashboardProps = {
   billerName?: string;
 }
 
+import apiConfig from "@/lib/api-config"
+
 export default function BillerDashboard({ billerName }: BillerDashboardProps) {
   const [dashboardData, setDashboardData] = useState<any>(null)
 
   useEffect(() => {
-    const apiUrl = billerName 
-      ? `http://127.0.0.1:5001/api/ar-data?role=biller&name=${encodeURIComponent(billerName)}`
-      : "http://127.0.0.1:5001/api/ar-data?role=biller";
+    // Use the API configuration with parameters
+    const queryParams: Record<string, string> = { role: 'biller' };
+    if (billerName) {
+      queryParams.name = billerName;
+    }
+    
+    const apiUrl = apiConfig.getUrl(apiConfig.endpoints.arData, queryParams);
       
     // Log the API request for debugging
     console.log("Fetching biller data from:", apiUrl);

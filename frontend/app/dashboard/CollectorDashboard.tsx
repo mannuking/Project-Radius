@@ -58,13 +58,19 @@ type CollectorDashboardProps = {
   collectorName?: string;
 }
 
+import apiConfig from "@/lib/api-config"
+
 export default function CollectorDashboard({ collectorName }: CollectorDashboardProps) {
   const [dashboardData, setDashboardData] = useState<any>(null)
 
   useEffect(() => {
-    const apiUrl = collectorName 
-      ? `http://127.0.0.1:5001/api/ar-data?role=collector&name=${encodeURIComponent(collectorName)}`
-      : "http://127.0.0.1:5001/api/ar-data?role=collector";
+    // Use the API configuration with parameters
+    const queryParams: Record<string, string> = { role: 'collector' };
+    if (collectorName) {
+      queryParams.name = collectorName;
+    }
+    
+    const apiUrl = apiConfig.getUrl(apiConfig.endpoints.arData, queryParams);
     
     // Log the API request for debugging
     console.log("Fetching collector data from:", apiUrl);

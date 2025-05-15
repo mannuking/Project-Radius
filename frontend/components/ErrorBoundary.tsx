@@ -27,9 +27,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
     // Log error to an error reporting service
     console.error('Error caught by boundary:', error, errorInfo)
   }
-
   render() {
     if (this.state.hasError) {
+      // Check for Firebase-specific errors
+      const errorMessage = this.state.error?.message || 'An unexpected error occurred';
+      const isFirebaseError = errorMessage.includes('Firebase') || errorMessage.includes('firestore') || errorMessage.includes('database');
+      
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
@@ -39,15 +42,35 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 Something went wrong
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                {this.state.error?.message || 'An unexpected error occurred'}
+                {errorMessage}
               </p>
+              {isFirebaseError && (
+                <div className="mt-4 p-4 bg-yellow-50 rounded-md text-left">
+                  <p className="text-sm text-yellow-800 font-medium">Firebase connection issue detected</p>
+                  <ul className="mt-2 text-xs list-disc pl-5 text-yellow-700">
+                    <li>Check if your Firestore database 'radiusdb' exists and is accessible</li>
+                    <li>Verify your API endpoints are correctly configured</li>
+                    <li>Make sure your Firebase Functions are deployed properly</li>
+                  </ul>
+                </div>
+              )}
             </div>
             <div className="mt-8 space-y-4">
               <Button
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  // Clear cache and reload
+                  if ('caches' in window) {
+                    caches.keys().then(names => {
+                      names.forEach(name => {
+                        caches.delete(name);
+                      });
+                    });
+                  }
+                  window.location.reload();
+                }}
                 className="w-full bg-highradius-600 hover:bg-highradius-700"
               >
-                Refresh Page
+                Clear Cache & Refresh Page
               </Button>
               <Button
                 onClick={() => window.location.href = '/'}

@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 // Import the polyfill loader - this must be imported before other client components
 import '../polyfill-loader.js'
+import AuthWrapper from '@/components/AuthWrapper'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -31,7 +32,9 @@ export default function RootLayout({
         >
           <ErrorBoundary>
             <AuthProvider>
-              {children}
+              <AuthWrapper>
+                {children}
+              </AuthWrapper>
               <Toaster />
             </AuthProvider>
           </ErrorBoundary>

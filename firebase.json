@@ -1,23 +1,22 @@
-{
-  "hosting": {
-    "public": "out",
+{  "hosting": {
+    "public": "frontend/out",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "cleanUrls": true,
-    "trailingSlash": false,
     "rewrites": [
       {
         "source": "/api/**",
         "function": "api"
       },
       {
-        "source": "**",
+        "source": "**/**",
         "destination": "/index.html"
       }
     ],
+    "cleanUrls": true,
+    "trailingSlash": false,
     "headers": [
       {
         "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|js|css|eot|otf|ttf|ttc|woff|woff2|font.css)",
@@ -29,15 +28,12 @@
         ]
       }
     ]
-  },
-  "functions": {
-    "source": "../functions"
+  },  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20"
   },
   "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "storage": {
-    "rules": "storage.rules"
+    "rules": "frontend/firestore.rules",
+    "indexes": "frontend/firestore.indexes.json"
   }
-} 
+}

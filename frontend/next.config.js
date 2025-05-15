@@ -6,6 +6,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  output: 'export',
+  distDir: 'out',
+  trailingSlash: true,
+  skipMiddlewareUrlNormalize: true,
+  skipTrailingSlashRedirect: true,
   images: {
     unoptimized: true,
   },

@@ -1,0 +1,14 @@
+// This file has been temporarily disabled for static export to Firebase Hosting
+// Original middleware functionality will need to be implemented using client-side redirects
+
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  // For static export, we just pass through all requests
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: [],
+} 

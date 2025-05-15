@@ -48,6 +48,8 @@ const formatCurrency = (value: number) => {
   return value.toString()
 };
 
+import apiConfig from "@/lib/api-config"
+
 export default function ManagerDashboard() {
   const [selectedYear, setSelectedYear] = useState("2024")
   const [selectedMonth, setSelectedMonth] = useState("All")
@@ -55,8 +57,8 @@ export default function ManagerDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null)
 
   useEffect(() => {
-    // Log the API request for debugging
-    const apiUrl = "http://127.0.0.1:5001/api/ar-data?role=manager";
+    // Use the API configuration to get the URL
+    const apiUrl = apiConfig.getUrl(apiConfig.endpoints.arData, { role: 'manager' });
     console.log("Fetching manager data from:", apiUrl);
     
     fetch(apiUrl)
