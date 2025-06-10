@@ -37,8 +37,7 @@ try {
     fs.mkdirSync(outDir, { recursive: true });
     console.log(`Created output directory: ${outDir}`);
   }
-  
-  // Check if index.html exists, if not create a simple one
+    // Check if index.html exists, if not create a simple one
   const indexHtmlPath = path.join(outDir, 'index.html');
   if (!fs.existsSync(indexHtmlPath)) {
     console.log('index.html not found, creating a simple one...');
@@ -47,10 +46,10 @@ try {
   <head>
     <meta charset="utf-8" />
     <title>Project Radius</title>
-    <script>
+    <script type="text/javascript">
       // Single Page Apps for GitHub Pages or Firebase Hosting
       // https://github.com/rafrex/spa-github-pages
-      // This script redirects to the root /index.html page if the URL doesn't match any static files
+      // This script handles routing for SPA on Firebase Hosting
       (function(l) {
         if (l.search[1] === '/') {
           var decoded = l.search.slice(1).split('&').map(function(s) { 
@@ -62,14 +61,18 @@ try {
     </script>
   </head>
   <body>
-    <div id="root">Loading Project Radius...</div>
-    <script>
-      window.location.href = '/';
-    </script>
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="text-align: center;">
+          <h1>Loading Project Radius...</h1>
+          <p>If this message persists, please check the browser console for errors.</p>
+        </div>
+      </div>
+    </div>
   </body>
 </html>`);
   }
-    // Create proper 404.html
+  // Create proper 404.html
   console.log('Creating proper 404.html file...');
   fs.writeFileSync(path.join(outDir, '404.html'), `<!DOCTYPE html>
 <html lang="en">
@@ -77,10 +80,19 @@ try {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Project Radius - Page Not Found</title>
-    <script>
-      // Redirect all 404s to the main index.html for SPA routing
-      // This ensures client-side routing works correctly
-      window.location.href = '/?route=' + window.location.pathname;
+    <script type="text/javascript">
+      // This script takes the current url and converts the path and query
+      // string into just a query string, and then redirects the browser
+      // to the new url with only a query string and hash fragment
+      var pathSegmentsToKeep = 0;
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
     </script>
     <style>
       body {

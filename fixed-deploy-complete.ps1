@@ -1,5 +1,5 @@
-# Fixed Firebase Deployment Script for Project Radius
-# This script resolves the SPA routing and Firestore database issues
+# Complete Fixed Firebase Deployment Script for Project Radius
+# This script resolves the SPA routing, Firestore database issues, and path reference issues
 
 # Make sure you're in the project root
 Set-Location -Path "e:\Projects\Project-Radius"
@@ -14,26 +14,14 @@ Set-Location -Path "e:\Projects\Project-Radius\functions"
 npm install firebase-functions@latest firebase-admin@latest
 Set-Location -Path "e:\Projects\Project-Radius"
 
-# Ensure the specific Firestore database exists
-Write-Host "Validating Firestore database 'radiusdb'..." -ForegroundColor Cyan
+# Ensure the Firestore database exists using the specific named database
+Write-Host "Validating/creating Firestore database 'radiusdb'..." -ForegroundColor Cyan
 try {
-    # This command checks if we can access the database
-    $result = Invoke-Expression "firebase firestore:databases:list 2>&1"
-    if ($result -match "radiusdb") {
-        Write-Host "Firestore database 'radiusdb' exists" -ForegroundColor Green
-    } else {
-        Write-Host "Warning: 'radiusdb' not found in database list." -ForegroundColor Yellow
-        Write-Host "Creating database 'radiusdb'..." -ForegroundColor Cyan
-        try {
-            Invoke-Expression "firebase firestore:databases:create radiusdb --location=us-central 2>&1"
-            Write-Host "Database 'radiusdb' created" -ForegroundColor Green
-        } catch {
-            Write-Host "Could not create database. Continuing anyway..." -ForegroundColor Yellow
-        }
-    }
-} 
-catch {
-    Write-Host "Could not verify database existence. Continuing anyway..." -ForegroundColor Yellow
+    # Create the radiusdb database if it doesn't exist
+    firebase firestore:databases:create radiusdb --location=us-central --project ar-tracker-c226f
+    Write-Host "Firestore database 'radiusdb' exists or has been created" -ForegroundColor Green
+} catch {
+    Write-Host "Note: Database may already exist or couldn't be created. Continuing..." -ForegroundColor Yellow
 }
 
 # Build the frontend with proper SPA handling
@@ -44,7 +32,6 @@ node build-for-firebase.js
 # Make sure the index.html handles SPA routing correctly
 Write-Host "Ensuring proper SPA routing..." -ForegroundColor Cyan
 $indexHtmlPath = "e:\Projects\Project-Radius\frontend\out\index.html"
-
 if (Test-Path -Path $indexHtmlPath) {
     $indexContent = Get-Content -Path $indexHtmlPath -Raw
     
@@ -89,53 +76,22 @@ if (Test-Path -Path $indexHtmlPath) {
 # Return to project root for deployment
 Set-Location -Path "e:\Projects\Project-Radius"
 
-# Make sure firebase.json has proper rewrites
-Write-Host "Checking firebase.json configuration..." -ForegroundColor Cyan
-$firebaseJsonPath = "e:\Projects\Project-Radius\firebase.json"
+# Copy Firebase config files to ensure consistent deployment
+Write-Host "Ensuring Firebase configuration consistency..." -ForegroundColor Cyan
 
-if (Test-Path -Path $firebaseJsonPath) {
-    $firebaseJson = Get-Content -Path $firebaseJsonPath -Raw | ConvertFrom-Json
-    
-    # Update rewrites if needed
-    $hasApiRewrite = $false
-    $hasCatchAllRewrite = $false
-    
-    foreach ($rewrite in $firebaseJson.hosting.rewrites) {
-        if ($rewrite.source -eq "/api/**" -and $rewrite.function -eq "api") {
-            $hasApiRewrite = $true
-        }
-        if ($rewrite.source -eq "**" -and $rewrite.destination -eq "/index.html") {
-            $hasCatchAllRewrite = $true
-        }
-    }
-    
-    if (-not ($hasApiRewrite -and $hasCatchAllRewrite)) {
-        Write-Host "Fixing rewrites in firebase.json..." -ForegroundColor Yellow
-        # Keep the original file as backup
-        Copy-Item -Path $firebaseJsonPath -Destination "$firebaseJsonPath.bak"
-        
-        # Ensure we have proper rewrites
-        $firebaseJson.hosting.rewrites = @(
-            @{
-                source = "/api/**"
-                function = "api"
-            },
-            @{
-                source = "**"
-                destination = "/index.html"
-            }
-        )
-        
-        $firebaseJson | ConvertTo-Json -Depth 10 | Set-Content -Path $firebaseJsonPath
-        Write-Host "✓ firebase.json fixed with proper rewrites" -ForegroundColor Green
-    }
+# Ensure firebase.json in root has proper configuration
+$rootFirebaseJson = Get-Content -Path "e:\Projects\Project-Radius\firebase.json" -Raw | ConvertFrom-Json
+
+# Make sure database name is specified in the configuration
+if (-not $rootFirebaseJson.firestore.database) {
+    Write-Host "Adding database name to firebase.json..." -ForegroundColor Yellow
+    $rootFirebaseJson.firestore.database = "radiusdb"
+    $rootFirebaseJson | ConvertTo-Json -Depth 10 | Set-Content -Path "e:\Projects\Project-Radius\firebase.json"
+    Write-Host "✓ Added database name to firebase.json" -ForegroundColor Green
 }
 
-# Deploy to Firebase in stages
+# Deploy to Firebase in stages with explicit config
 Write-Host "Deploying to Firebase..." -ForegroundColor Cyan
-
-# Ensure we're in the project root using the root firebase.json
-Set-Location -Path "e:\Projects\Project-Radius"
 
 # Deploy Firestore rules first
 Write-Host "Deploying Firestore rules..." -ForegroundColor Cyan
@@ -143,7 +99,7 @@ firebase deploy --only firestore --project ar-tracker-c226f --config "e:\Project
 
 # Deploy Functions 
 Write-Host "Deploying Cloud Functions..." -ForegroundColor Cyan
-firebase deploy --only functions --force --project ar-tracker-c226f --config "e:\Projects\Project-Radius\firebase.json"
+firebase deploy --only functions --force --project ar-tracker-c226f --config "e:\Projects\Project-Radius\firebase.json" 
 
 # Deploy Hosting last
 Write-Host "Deploying Frontend Hosting..." -ForegroundColor Cyan

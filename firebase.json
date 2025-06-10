@@ -1,4 +1,5 @@
-{  "hosting": {
+{
+  "hosting": {
     "public": "frontend/out",
     "ignore": [
       "firebase.json",
@@ -11,7 +12,7 @@
         "function": "api"
       },
       {
-        "source": "**/**",
+        "source": "**",
         "destination": "/index.html"
       }
     ],
@@ -28,12 +29,14 @@
         ]
       }
     ]
-  },  "functions": {
-    "source": "functions",
+  },
+  "functions": {
+    "source": "./functions",
     "runtime": "nodejs20"
   },
   "firestore": {
     "rules": "frontend/firestore.rules",
-    "indexes": "frontend/firestore.indexes.json"
+    "indexes": "frontend/firestore.indexes.json",
+    "database": "radiusdb"
   }
 }
