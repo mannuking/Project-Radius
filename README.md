@@ -111,6 +111,7 @@ The system will support the following user roles with distinct permissions:
     *   Configure environment variables (`.env` file): Database connection string, secret key, etc.
     *   Run database migrations: `flask db upgrade` (or equivalent)
     *   (Optional) Seed initial data (e.g., dropdown values, admin user).
+    *   **Note:** The backend automatically replaces all `NaN` values from Excel or DataFrames with `null` in JSON API responses to ensure valid JSON for the frontend. If you modify backend data processing, ensure no `NaN` values are returned in API responses.
 3.  **Frontend Setup:**
     *   Navigate to frontend directory: `cd frontend`
     *   Install dependencies: `npm install` (or `yarn install`)
